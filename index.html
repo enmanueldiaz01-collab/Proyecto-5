@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <link type="text/css" rel="stylesheet" href="style.css"/>
+  </head>
+  <body>
+    <!DOCTYPE html>
+<html lang="en">
+  <head>
+    <link type="text/css" rel="stylesheet" href="style.css"/>
+  </head>
+  <body>
+    <!DOCTYPE html>
+<html lang="es" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Asistente AI Pro - Dark Mode</title>
+  
+  <!-- Iconos y Fuentes -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Estilos para Código -->
+  <link href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism.min.css" rel="stylesheet" />
+  
+  <style>
+    :root {
+      /* Variables Modo Claro (Default) */
+      --primary: #ff0000ff;
+      --sidebar-bg: #302f2fff;
+      --sidebar-width: 260px;
+      --main-bg: #FFFFFF;
+      --text-main: #000000ff;
+      --border-color: #e5e7eb;
+      --input-bg: #ffffff;
+      --msg-user-bg: #f3f4f6;
+      --msg-ai-bg: #ffffff;
+      --topbar-bg: #ffffff;
+    }
+
+    /* Variables Modo Oscuro */
+    [data-theme="dark"] {
+      --main-bg: #343541;
+      --text-main: #ececf1;
+      --border-color: #4d4d4f;
+      --input-bg: #40414f;
+      --msg-user-bg: #444654; /* Un poco más claro que el fondo */
+      --msg-ai-bg: #343541;    /* Igual que el fondo */
+      --topbar-bg: #343541;
+      --primary: #818cf8; /* Un poco más brillante para modo oscuro */
+    }
+
+    body {
+      margin: 0;
+      font-family: 'Inter', sans-serif;
+      display: flex;
+      height: 100vh;
+      overflow: hidden;
+      background-color: var(--main-bg);
+      color: var(--text-main);
+      transition: background-color 0.3s, color 0.3s;
+    }
+
+    /* --- SIDEBAR (Barra Lateral) --- */
+    aside {
+      width: var(--sidebar-width);
+      background-color: var(--sidebar-bg);
+      color: white;
+      display: flex;
+      flex-direction: column;
+      padding: 10px;
+      transition: margin-left 0.3s ease;
+      flex-shrink: 0;
+    }
+
+    aside.closed { margin-left: calc(var(--sidebar-width) * -1); }
+
+    .new-chat-btn {
+      background-color: var(--primary);
+      border: 1px solid rgba(255,255,255,0.2);
+      border-radius: 5px;
+      padding: 12px;
+      color: white;
+      text-align: left;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      transition: background 0.2s;
+      margin-bottom: 20px;
+      font-weight: 600;
+    }
+    .new-chat-btn:hover { background-color: #4f46e5; }
+
+    .history-list {
+      flex: 1;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+
+    .history-item {
+      padding: 10px;
+      border-radius: 5px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: #ececf1;
+      font-size: 0.9rem;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .history-item:hover { background-color: #2A2B32; }
+    .history-item.active { background-color: #343541; }
+
+    /* --- ÁREA PRINCIPAL --- */
+    main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      background-color: var(--main-bg);
+      transition: width 0.3s ease;
+    }
+
+    /* Barra superior */
+    .top-bar {
+      padding: 10px 20px;
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      align-items: center;
+      justify-content: space-between; /* Para separar menú del botón dark mode */
+      background: var(--topbar-bg);
+    }
+
+    .menu-group { display: flex; align-items: center; gap: 15px; }
+
+    .icon-btn {
+      background: none;
+      border: none;
+      font-size: 1.2rem;
+      cursor: pointer;
+      color: var(--text-main);
+      padding: 5px;
+      border-radius: 4px;
+      transition: background 0.2s;
+    }
+    .icon-btn:hover { background: rgba(128,128,128,0.1); }
+
+    /* Chat Area */
+    .chat-container {
+      flex: 1;
+      overflow-y: auto;
+      padding: 20px;
+      scroll-behavior: smooth;
+    }
+    
+    .welcome-screen { text-align: center; margin-top: 50px; }
+    .avatar-img {
+      width: 80px; height: 80px; border-radius: 50%; object-fit: cover;
+      border: 3px solid var(--primary); margin-bottom: 15px;
+    }
+    .title-gradient {
+      font-size: 1.8rem; font-weight: 700;
+      background: linear-gradient(90deg, #d91616ff, #340d0dff);
+      -webkit-background-clip: text; background-clip: text; color: transparent;
+    }
+
+    /* Mensajes */
+    .message-wrapper {
+      max-width: 800px; margin: 0 auto 20px; display: flex; gap: 15px;
+      padding: 15px; border-radius: 10px;
+      color: var(--text-main);
+    }
+    .message-wrapper.user { background-color: var(--msg-user-bg); }
+    .message-wrapper.ai { background-color: var(--msg-ai-bg); border: 1px solid var(--border-color); }
+    
+    /* Quitar borde en modo oscuro para AI si se desea */
+    [data-theme="dark"] .message-wrapper.ai { border: none; }
+
+    .msg-icon {
+      width: 35px; height: 35px; border-radius: 50%; display: flex;
+      align-items: center; justify-content: center; color: white; flex-shrink: 0;
+    }
+    .icon-user { background: #5436DA; }
+    .icon-ai { background: #10a37f; }
+    .msg-content { line-height: 1.6; font-size: 1rem; overflow-x: auto; }
+
+    /* --- ÁREA DE INPUT --- */
+    .input-area {
+      padding: 20px;
+      background: var(--main-bg);
+      border-top: 1px solid var(--border-color);
+    }
+    
+    .input-wrapper { max-width: 800px; margin: 0 auto; }
+
+    textarea {
+      width: 100%;
+      padding: 15px;
+      border: 2px solid var(--border-color);
+      border-radius: 10px;
+      resize: none;
+      font-family: inherit;
+      outline: none;
+      box-sizing: border-box;
+      background-color: var(--input-bg);
+      color: var(--text-main);
+    }
+    textarea:focus { border-color: var(--primary); }
+
+    /* BOTONES */
+    .button-group {
+      display: flex;
+      gap: 10px;
+      margin-top: 10px;
+      justify-content: flex-end;
+    }
+
+    .btn-action {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 6px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: white;
+      transition: opacity 0.2s;
+    }
+    .btn-action:hover { opacity: 0.9; }
+
+    .btn-send { background: linear-gradient(135deg, #e11414ff, #e54646ff); }
+    .btn-clear { background: #ef4444; }
+    .btn-copy { background: #000000ff; } /* Verde para copiar */
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      aside { position: absolute; height: 100%; z-index: 100; margin-left: -260px; }
+      aside.open-mobile { margin-left: 0; }
+    }
+
+    pre { background: #1e1e1e !important; border-radius: 6px; padding: 10px; }
+  </style>
+</head>
+<body>
+
+  <!-- BARRA LATERAL -->
+  <aside id="sidebar">
+    <button class="new-chat-btn" id="newChatBtn">
+      <i class="fas fa-plus"></i> Nuevo Chat
+    </button>
+
+    <div style="padding: 0 5px 10px; border-bottom: 1px solid #444; display:flex; justify-content:space-between; color:#888; font-size:0.8rem;">
+      <span>HISTORIAL</span>
+      <i class="fas fa-trash-alt" id="clearAllBtn" style="cursor:pointer;" title="Borrar todo"></i>
+    </div>
+
+    <div class="history-list" id="historyList">
+      <!-- Lista de chats -->
+    </div>
+  </aside>
+
+  <!-- CONTENIDO PRINCIPAL -->
+  <main>
+    <!-- Barra Superior -->
+    <div class="top-bar">
+      <div class="menu-group">
+        <button class="icon-btn" id="toggleSidebar" title="Abrir/Cerrar Menú">
+          <i class="fas fa-bars"></i>
+        </button>
+        <span style="font-weight: 600;">Mi Asistente AI</span>
+      </div>
+      
+      <!-- Botón Modo Oscuro -->
+      <button class="icon-btn" id="themeBtn" title="Cambiar Tema">
+        <i class="fas fa-moon"></i>
+      </button>
+    </div>
+
+    <div class="chat-container" id="chatContainer">
+      <!-- Pantalla Bienvenida -->
+      <div id="welcomeScreen" class="welcome-screen">
+        <img src="https://cdn.kwork.com/files/portfolio/t3/09/dbe21dc5aa5a614f57f48b50768f7b06deb964e1-1711803728.jpg" class="avatar-img" alt="Avatar">
+        <div class="title-gradient">Enma IA (Asistente con AI)</div>
+        <p style="opacity: 0.8;">Hola! soy un asistente con AI creado por mi amo "Enmanuel Diaz". anda! Pregúntame lo que quieras. ¡Estoy aquí para ayudarte!</p>
+      </div>
+      
+      <!-- Mensajes -->
+      <div id="messagesArea"></div>
+    </div>
+
+    <!-- ÁREA DE INPUT Y BOTONES -->
+    <div class="input-area">
+      <div class="input-wrapper">
+        <textarea id="promptInput" rows="2" placeholder="Escribe tu consulta aquí..."></textarea>
+        
+        <div class="button-group">
+          <!-- Botón Limpiar -->
+          <button id="clearBtn" class="btn-action btn-clear" title="Limpiar caja de texto">
+            <i class="fas fa-eraser"></i> Limpiar
+          </button>
+          
+          <!-- Botón Copiar Todo (NUEVO) -->
+          <button id="copyAllBtn" class="btn-action btn-copy" title="Copiar conversación">
+            <i class="fas fa-copy"></i> Copiar Todo
+          </button>
+
+          <!-- Botón Enviar -->
+          <button id="executeBtn" class="btn-action btn-send" title="Enviar mensaje">
+            <i class="fas fa-paper-plane"></i> Enviar
+          </button>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- SCRIPTS -->
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+
+  <script>
+    // ==========================================
+    //    👇👇 ¡PEGA TU LLAVE AQUÍ! 👇👇
+    // ==========================================
+    const GEMINI_API_KEY = "AIzaSyAYHe5rYJG2rE3whiH6sHp_afed8fE1ZcM"; 
+    // ==========================================
+
+    let allChats = JSON.parse(localStorage.getItem('myGeminiChats')) || [];
+    let currentChatId = null; 
+    let currentMessages = [];
+    let detectedModel = "gemini-1.5-flash";
+
+    // Elementos
+    const sidebar = document.getElementById('sidebar');
+    const toggleBtn = document.getElementById('toggleSidebar');
+    const executeBtn = document.getElementById('executeBtn');
+    const clearBtn = document.getElementById('clearBtn');
+    const copyAllBtn = document.getElementById('copyAllBtn'); // Nuevo
+    const themeBtn = document.getElementById('themeBtn'); // Nuevo
+    const promptInput = document.getElementById('promptInput');
+    const messagesArea = document.getElementById('messagesArea');
+    const welcomeScreen = document.getElementById('welcomeScreen');
+    const historyList = document.getElementById('historyList');
+    const newChatBtn = document.getElementById('newChatBtn');
+    const clearAllBtn = document.getElementById('clearAllBtn');
+
+    // 1. MODO OSCURO (Lógica)
+    const storedTheme = localStorage.getItem('theme') || 'light';
+    setTheme(storedTheme);
+
+    themeBtn.addEventListener('click', () => {
+        const current = document.documentElement.getAttribute('data-theme');
+        const next = current === 'dark' ? 'light' : 'dark';
+        setTheme(next);
+    });
+
+    function setTheme(theme) {
+        document.documentElement.setAttribute('data-theme', theme);
+        localStorage.setItem('theme', theme);
+        // Cambiar icono
+        themeBtn.innerHTML = theme === 'dark' ? '<i class="fas fa-sun"></i>' : '<i class="fas fa-moon"></i>';
+    }
+
+    // 2. COPIAR TODO (Lógica)
+    copyAllBtn.addEventListener('click', () => {
+        if(currentMessages.length === 0) return alert("No hay nada que copiar.");
+        
+        // Formatear texto bonito
+        const textToCopy = currentMessages.map(msg => {
+            const role = msg.role === 'model' ? 'IA' : 'TÚ';
+            const text = msg.parts[0].text;
+            return `[${role}]:\n${text}\n`;
+        }).join('\n-------------------\n');
+
+        navigator.clipboard.writeText(textToCopy).then(() => {
+            const originalHTML = copyAllBtn.innerHTML;
+            copyAllBtn.innerHTML = '<i class="fas fa-check"></i> Copiado';
+            setTimeout(() => copyAllBtn.innerHTML = originalHTML, 2000);
+        }).catch(err => console.error('Error al copiar:', err));
+    });
+
+    // 3. ABRIR / CERRAR SIDEBAR
+    toggleBtn.addEventListener('click', () => {
+        if(window.innerWidth < 768) {
+            sidebar.classList.toggle('open-mobile');
+        } else {
+            sidebar.classList.toggle('closed');
+        }
+    });
+
+    // 4. INICIALIZACIÓN
+    document.addEventListener('DOMContentLoaded', () => {
+        renderHistory();
+        findBestModel();
+    });
+
+    // 5. ENVIAR MENSAJE
+    executeBtn.addEventListener('click', sendMessage);
+    promptInput.addEventListener('keydown', (e) => {
+        if(e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+    });
+
+    async function sendMessage() {
+        const text = promptInput.value.trim();
+        if(!text) return;
+
+        if(!currentChatId) {
+            currentChatId = Date.now();
+            welcomeScreen.style.display = 'none';
+        }
+
+        appendMessage('user', text);
+        promptInput.value = '';
+        
+        currentMessages.push({ role: 'user', parts: [{ text: text }] });
+
+        const loadingDiv = document.createElement('div');
+        loadingDiv.className = 'message-wrapper ai';
+        loadingDiv.innerHTML = `<div class="msg-icon icon-ai"><i class="fas fa-robot"></i></div><div class="msg-content">Pensando... <i class="fas fa-spinner fa-spin"></i></div>`;
+        messagesArea.appendChild(loadingDiv);
+        messagesArea.scrollTop = messagesArea.scrollHeight;
+
+        try {
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/${detectedModel}:generateContent?key=${GEMINI_API_KEY}`;
+            const response = await fetch(url, {
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ contents: currentMessages })
+            });
+            const data = await response.json();
+            messagesArea.removeChild(loadingDiv);
+
+            if(!response.ok) throw new Error(data.error?.message || "Error");
+
+            const reply = data.candidates[0].content.parts[0].text;
+            appendMessage('ai', reply);
+            currentMessages.push({ role: 'model', parts: [{ text: reply }] });
+            saveChat();
+
+        } catch (error) {
+            messagesArea.removeChild(loadingDiv);
+            appendMessage('ai', `Error: ${error.message}`);
+        }
+    }
+
+    clearBtn.addEventListener('click', () => {
+        promptInput.value = '';
+        promptInput.focus();
+    });
+
+    // --- FUNCIONES DE APOYO ---
+    function appendMessage(role, text) {
+        const div = document.createElement('div');
+        div.className = `message-wrapper ${role}`;
+        div.innerHTML = `
+            <div class="msg-icon ${role === 'user' ? 'icon-user' : 'icon-ai'}">
+                <i class="fas ${role === 'user' ? 'fa-user' : 'fa-robot'}"></i>
+            </div>
+            <div class="msg-content">${marked.parse(text)}</div>
+        `;
+        messagesArea.appendChild(div);
+        Prism.highlightAll();
+        window.scrollTo(0, document.body.scrollHeight);
+    }
+
+    function saveChat() {
+        let title = currentMessages[0]?.parts[0]?.text.substring(0, 25) || "Chat";
+        const chatObj = { id: currentChatId, title: title, messages: currentMessages };
+        const idx = allChats.findIndex(c => c.id === currentChatId);
+        if(idx !== -1) allChats[idx] = chatObj; else allChats.unshift(chatObj);
+        localStorage.setItem('myGeminiChats', JSON.stringify(allChats));
+        renderHistory();
+    }
+
+    function renderHistory() {
+        historyList.innerHTML = "";
+        allChats.forEach(chat => {
+            const item = document.createElement('div');
+            item.className = `history-item ${chat.id === currentChatId ? 'active' : ''}`;
+            item.innerHTML = `<i class="far fa-comment-alt"></i> ${chat.title}`;
+            item.onclick = () => loadChat(chat.id);
+            historyList.appendChild(item);
+        });
+    }
+
+    function loadChat(id) {
+        const chat = allChats.find(c => c.id === id);
+        if(!chat) return;
+        currentChatId = chat.id;
+        currentMessages = chat.messages;
+        messagesArea.innerHTML = "";
+        welcomeScreen.style.display = 'none';
+        currentMessages.forEach(m => appendMessage(m.role==='model'?'ai':'user', m.parts[0].text));
+        renderHistory();
+        if(window.innerWidth < 768) sidebar.classList.remove('open-mobile');
+    }
+
+    newChatBtn.addEventListener('click', () => {
+        currentChatId = null; currentMessages = []; messagesArea.innerHTML = "";
+        welcomeScreen.style.display = 'block'; promptInput.value = ''; renderHistory();
+        if(window.innerWidth < 768) sidebar.classList.remove('open-mobile');
+    });
+
+    clearAllBtn.addEventListener('click', () => {
+        if(confirm("¿Borrar todo?")) { localStorage.removeItem('myGeminiChats'); allChats=[]; newChatBtn.click(); }
+    });
+
+    async function findBestModel() {
+        if(GEMINI_API_KEY.includes("PEGAR")) return;
+        try {
+            const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${GEMINI_API_KEY}`);
+            const d = await r.json();
+            if(d.models) detectedModel = (d.models.find(m=>m.name.includes('flash')) || d.models[0]).name.replace("models/","");
+        } catch(e){}
+    }
+  </script>
+</body>
+</html>
+    <script type="module" src="script.js"></script>
+  </body>
+</html>
+    <script type="module" src="script.js"></script>
+  </body>
+</html>
